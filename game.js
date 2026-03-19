@@ -826,7 +826,7 @@ function arrancarJuego() {
       this.chests = [];
       this.chestGfx = [];
       this.heartSpawned = {};
-      this.lastChestBand = -1;
+      this.nextChestAt = 6000;
       this.balas = [];
       this.balaGfx = [];
 
@@ -1078,13 +1078,7 @@ function arrancarJuego() {
       const metrosCentroChunk = this.metrosDesdeY((desdeY + hastaY) / 2);
       const capaCentro = CAPAS[getCapa(metrosCentroChunk)];
 
-      const chestBand = Math.floor(metrosCentroChunk / 18000);
-      if (chestBand > this.lastChestBand && chestBand >= 1 && capaCentro.move !== 'asteroid') {
-        this.lastChestBand = chestBand;
-        const chestY = Phaser.Math.Between(hastaY + 100, desdeY - 160);
-        this.spawnChest(chestY);
-      }
-
+     
       if (capaCentro.move === 'asteroid') {
         for (let i = 0; i < 5; i++) {
           const ex = Phaser.Math.Between(WALL + 20, W - WALL - 20);
@@ -1241,6 +1235,14 @@ function arrancarJuego() {
 
       const nuevaCapa = getCapa(this.metrosReales);
       const capaData = CAPAS[nuevaCapa];
+
+      while (this.metrosReales >= this.nextChestAt) {
+  if (capaData.move !== 'asteroid') {
+    const chestY = this.cameras.main.scrollY + Phaser.Math.Between(90, 170);
+    this.spawnChest(chestY);
+  }
+  this.nextChestAt += Phaser.Math.Between(14000, 18000);
+}
 
       if (nuevaCapa !== this.nivelActual) {
         this.nivelActual = nuevaCapa;
