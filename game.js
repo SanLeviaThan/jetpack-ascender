@@ -711,24 +711,24 @@ function arrancarJuego() {
   function dibujarCofre(scene, x, y) {
     const g = scene.add.graphics();
 
-    g.fillStyle(0xffdd55, 0.18);
-    g.fillCircle(0, 0, 20);
+    g.fillStyle(0xffdd55, 0.20);
+    g.fillCircle(0, 0, 22);
 
-    g.fillStyle(0xb06b12, 1);
-    g.fillRoundedRect(-14, -8, 28, 20, 4);
+    g.fillStyle(0x8a4f0d, 1);
+    g.fillRoundedRect(-16, -7, 32, 22, 4);
 
-    g.fillStyle(0xe3a42a, 1);
-    g.fillRoundedRect(-14, -12, 28, 12, 6);
+    g.fillStyle(0xc57b1f, 1);
+    g.fillRoundedRect(-16, -14, 32, 14, 7);
 
-    g.fillStyle(0x6b3a00, 1);
-    g.fillRect(-3, -12, 6, 24);
+    g.fillStyle(0x5e3000, 1);
+    g.fillRect(-3, -14, 6, 29);
 
-    g.fillStyle(0xfff2a8, 1);
+    g.fillStyle(0xffef9c, 1);
     g.fillRect(-2, -2, 4, 6);
 
-    g.lineStyle(2, 0xffe680, 0.9);
-    g.strokeRoundedRect(-14, -8, 28, 20, 4);
-    g.strokeRoundedRect(-14, -12, 28, 12, 6);
+    g.lineStyle(2, 0xffe680, 0.95);
+    g.strokeRoundedRect(-16, -7, 32, 22, 4);
+    g.strokeRoundedRect(-16, -14, 32, 14, 7);
 
     g.x = x;
     g.y = y;
@@ -899,11 +899,12 @@ function arrancarJuego() {
     }
 
     spawnChest(y) {
-      const x = Phaser.Math.Between(WALL + 46, W - WALL - 46);
-      const chest = this.add.rectangle(x, y, 28, 24, 0x000000, 0);
+      const x = Phaser.Math.Between(WALL + 50, W - WALL - 50);
+
+      const chest = this.add.rectangle(x, y, 34, 28, 0x000000, 0);
       this.physics.add.existing(chest);
       chest.body.setAllowGravity(false);
-      chest.body.setVelocityX(Phaser.Math.Between(75, 110) * (Math.random() > 0.5 ? 1 : -1));
+      chest.body.setVelocityX(Phaser.Math.Between(80, 115) * (Math.random() > 0.5 ? 1 : -1));
       chest.moveSpeed = Math.abs(chest.body.velocity.x);
 
       const cg = dibujarCofre(this, x, y);
@@ -1078,7 +1079,6 @@ function arrancarJuego() {
       const metrosCentroChunk = this.metrosDesdeY((desdeY + hastaY) / 2);
       const capaCentro = CAPAS[getCapa(metrosCentroChunk)];
 
-     
       if (capaCentro.move === 'asteroid') {
         for (let i = 0; i < 5; i++) {
           const ex = Phaser.Math.Between(WALL + 20, W - WALL - 20);
@@ -1237,12 +1237,12 @@ function arrancarJuego() {
       const capaData = CAPAS[nuevaCapa];
 
       while (this.metrosReales >= this.nextChestAt) {
-  if (capaData.move !== 'asteroid') {
-    const chestY = this.cameras.main.scrollY + Phaser.Math.Between(90, 170);
-    this.spawnChest(chestY);
-  }
-  this.nextChestAt += Phaser.Math.Between(14000, 18000);
-}
+        if (capaData.move !== 'asteroid') {
+          const chestY = this.cameras.main.scrollY + Phaser.Math.Between(120, 220);
+          this.spawnChest(chestY);
+        }
+        this.nextChestAt += Phaser.Math.Between(14000, 18000);
+      }
 
       if (nuevaCapa !== this.nivelActual) {
         this.nivelActual = nuevaCapa;
