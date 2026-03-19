@@ -1,4 +1,4 @@
-﻿const SB_URL = 'https://moisurvmpoitmjgnzfew.supabase.co';
+const SB_URL = 'https://moisurvmpoitmjgnzfew.supabase.co';
 const SB_KEY = 'sb_publishable_sL2-HhknaCajZlsp1iFoJg_svcXZkJI';
 
 let jugadorNombre = '';
@@ -134,14 +134,6 @@ function sfxDeath() {
   noiseBurst(0.18, 0.03, t + 0.02, 300);
 }
 
-function sfxHit() {
-  if (!audioFX.ctx) return;
-  const t = audioFX.ctx.currentTime;
-  beep(240, 0.05, 'sawtooth', 0.05, t);
-  beep(170, 0.08, 'sawtooth', 0.04, t + 0.04);
-  noiseBurst(0.10, 0.03, t + 0.01, 450);
-}
-
 function sfxRanking() {
   if (!audioFX.ctx) return;
   const t = audioFX.ctx.currentTime;
@@ -150,22 +142,12 @@ function sfxRanking() {
   beep(1174, 0.14, 'triangle', 0.045, t + 0.16);
 }
 
-function sfxLayer() {
+function sfxLayerShift() {
   if (!audioFX.ctx) return;
   const t = audioFX.ctx.currentTime;
-  beep(440, 0.10, 'triangle', 0.03, t);
-  beep(660, 0.12, 'triangle', 0.04, t + 0.08);
-  beep(990, 0.16, 'sine', 0.05, t + 0.18);
-  noiseBurst(0.10, 0.015, t + 0.04, 900);
-}
-
-function sfxBoost() {
-  if (!audioFX.ctx) return;
-  const t = audioFX.ctx.currentTime;
-  beep(520, 0.06, 'square', 0.035, t);
-  beep(780, 0.08, 'square', 0.04, t + 0.05);
-  beep(1170, 0.11, 'triangle', 0.05, t + 0.11);
-  noiseBurst(0.12, 0.018, t + 0.02, 1200);
+  beep(460, 0.08, 'triangle', 0.03, t);
+  beep(690, 0.10, 'triangle', 0.04, t + 0.05);
+  beep(920, 0.12, 'sine', 0.04, t + 0.12);
 }
 
 function startJetpackSound() {
@@ -443,28 +425,6 @@ function mostrarMenu() {
   }
 }
 
-let capaOverlayTimer = null;
-
-function mostrarTransicionCapa(nombre) {
-  const panel = document.getElementById('panel-capa');
-  const titulo = document.getElementById('capa-titulo');
-
-  if (!panel || !titulo) return;
-
-  titulo.textContent = nombre;
-
-  panel.classList.remove('activo');
-  void panel.offsetWidth;
-  panel.classList.add('activo');
-
-  sfxLayer();
-
-  if (capaOverlayTimer) clearTimeout(capaOverlayTimer);
-  capaOverlayTimer = setTimeout(() => {
-    panel.classList.remove('activo');
-  }, 1200);
-}
-
 async function mostrarGameOver(metros) {
   document.getElementById('hud').style.display = 'none';
   if (gameInstance) gameInstance.input.keyboard.enabled = false;
@@ -515,12 +475,108 @@ function arrancarJuego() {
   const WALL = 14;
 
   const CAPAS = [
-    { nombre: 'ATMÓSFERA', desde: 0, hasta: 12000, bg: 0x04041a, platColor: 0x1133cc, glow: 0x3355ff, enemyColor: 0xff3333, enemySize: 22, move: 'horizontal', speed: 70 },
-    { nombre: 'ESTRATÓSFERA', desde: 12000, hasta: 50000, bg: 0x0d0420, platColor: 0x6611bb, glow: 0xaa33ff, enemyColor: 0xff9933, enemySize: 24, move: 'vertical', speed: 75 },
-    { nombre: 'MESÓSFERA', desde: 50000, hasta: 85000, bg: 0x041408, platColor: 0x117733, glow: 0x22ff66, enemyColor: 0xffff33, enemySize: 26, move: 'sine', speed: 85 },
-    { nombre: 'TERMÓSFERA', desde: 85000, hasta: 150000, bg: 0x180404, platColor: 0xaa3300, glow: 0xff5500, enemyColor: 0x66e3ff, enemySize: 28, move: 'dash', speed: 105 },
-    { nombre: 'EXÓSFERA', desde: 150000, hasta: 220000, bg: 0x041414, platColor: 0x007788, glow: 0x00ffee, enemyColor: 0xff66ff, enemySize: 30, move: 'circle', speed: 115 },
-    { nombre: 'ESPACIO', desde: 220000, hasta: 999999, bg: 0x010108, platColor: 0x555555, glow: 0x999999, enemyColor: 0x888888, enemySize: 32, move: 'asteroid', speed: 130 }
+    {
+      nombre: 'ATMÓSFERA',
+      desde: 0,
+      hasta: 12000,
+      bg: 0x04041a,
+      platColor: 0x1133cc,
+      glow: 0x3355ff,
+      enemyColor: 0xff3333,
+      enemySize: 22,
+      move: 'horizontal',
+      speed: 62,
+      enemyDensity: 1,
+      jetPower: 395,
+      fuelUse: 0.52,
+      fuelRegen: 0.17,
+      fuelPickup: 36
+    },
+    {
+      nombre: 'ESTRATÓSFERA',
+      desde: 12000,
+      hasta: 50000,
+      bg: 0x0d0420,
+      platColor: 0x6611bb,
+      glow: 0xaa33ff,
+      enemyColor: 0xff9933,
+      enemySize: 24,
+      move: 'vertical',
+      speed: 72,
+      enemyDensity: 1,
+      jetPower: 390,
+      fuelUse: 0.56,
+      fuelRegen: 0.15,
+      fuelPickup: 34
+    },
+    {
+      nombre: 'MESÓSFERA',
+      desde: 50000,
+      hasta: 85000,
+      bg: 0x041408,
+      platColor: 0x117733,
+      glow: 0x22ff66,
+      enemyColor: 0xffff33,
+      enemySize: 26,
+      move: 'sine',
+      speed: 84,
+      enemyDensity: 1,
+      jetPower: 385,
+      fuelUse: 0.60,
+      fuelRegen: 0.13,
+      fuelPickup: 32
+    },
+    {
+      nombre: 'TERMÓSFERA',
+      desde: 85000,
+      hasta: 150000,
+      bg: 0x180404,
+      platColor: 0xaa3300,
+      glow: 0xff5500,
+      enemyColor: 0x66e3ff,
+      enemySize: 28,
+      move: 'dash',
+      speed: 98,
+      enemyDensity: 2,
+      jetPower: 378,
+      fuelUse: 0.65,
+      fuelRegen: 0.11,
+      fuelPickup: 30
+    },
+    {
+      nombre: 'EXÓSFERA',
+      desde: 150000,
+      hasta: 220000,
+      bg: 0x041414,
+      platColor: 0x007788,
+      glow: 0x00ffee,
+      enemyColor: 0xff66ff,
+      enemySize: 30,
+      move: 'circle',
+      speed: 112,
+      enemyDensity: 2,
+      jetPower: 370,
+      fuelUse: 0.70,
+      fuelRegen: 0.09,
+      fuelPickup: 28
+    },
+    {
+      nombre: 'ESPACIO',
+      desde: 220000,
+      hasta: 999999,
+      bg: 0x010108,
+      platColor: 0x555555,
+      glow: 0x999999,
+      enemyColor: 0x888888,
+      enemySize: 32,
+      move: 'asteroid',
+      speed: 132,
+      enemyDensity: 0,
+      jetPower: 365,
+      fuelUse: 0.74,
+      fuelRegen: 0.08,
+      fuelPickup: 26
+    }
   ];
 
   const ESCALA_METROS = 6;
@@ -615,55 +671,18 @@ function arrancarJuego() {
 
   function dibujarCorazon(scene, x, y) {
     const g = scene.add.graphics();
-
-    g.fillStyle(0xff4d88, 0.10);
-    g.fillCircle(0, 0, 34);
-    g.fillStyle(0xff66aa, 0.14);
-    g.fillCircle(0, 0, 26);
-
-    g.fillStyle(0xff3366, 0.18);
-    g.fillCircle(-16, -10, 18);
-    g.fillCircle(16, -10, 18);
-    g.fillTriangle(-32, 0, 32, 0, 0, 38);
+    g.fillStyle(0xff3366, 0.28);
+    g.fillCircle(-6, -4, 8);
+    g.fillCircle(6, -4, 8);
+    g.fillTriangle(-14, 0, 14, 0, 0, 16);
 
     g.fillStyle(0xff5577, 1);
-    g.fillCircle(-13, -8, 14);
-    g.fillCircle(13, -8, 14);
-    g.fillTriangle(-26, 2, 26, 2, 0, 30);
+    g.fillCircle(-5, -3, 6);
+    g.fillCircle(5, -3, 6);
+    g.fillTriangle(-11, 1, 11, 1, 0, 13);
 
-    g.fillStyle(0xffffff, 0.30);
-    g.fillCircle(-18, -12, 5);
-    g.fillCircle(6, -14, 3);
-
-    g.lineStyle(3, 0xff99cc, 0.28);
-    g.strokeCircle(0, 2, 28);
-
-    g.x = x;
-    g.y = y;
-    return g;
-  }
-
-  function dibujarBoost(scene, x, y) {
-    const g = scene.add.graphics();
-
-    g.fillStyle(0xffdd33, 0.18);
-    g.fillCircle(0, 0, 26);
-    g.fillStyle(0xffff88, 0.10);
-    g.fillCircle(0, 0, 36);
-
-    g.fillStyle(0xffcc00, 1);
-    g.fillTriangle(0, -18, 8, -2, -8, -2);
-    g.fillTriangle(18, 0, 2, 8, 2, -8);
-    g.fillTriangle(0, 18, 8, 2, -8, 2);
-    g.fillTriangle(-18, 0, -2, 8, -2, -8);
-
-    g.fillStyle(0xffffff, 0.9);
-    g.fillCircle(-5, -6, 3);
-    g.fillStyle(0xffaa00, 1);
-    g.fillCircle(0, 0, 7);
-
-    g.lineStyle(2, 0xffffcc, 0.35);
-    g.strokeCircle(0, 0, 21);
+    g.fillStyle(0xffffff, 0.35);
+    g.fillCircle(-7, -5, 2);
 
     g.x = x;
     g.y = y;
@@ -688,9 +707,6 @@ function arrancarJuego() {
       }
 
       this.wallGfx = this.add.graphics();
-      this.hitOverlay = this.add.graphics().setScrollFactor(0).setDepth(9999);
-      this.hitFlashAlpha = 0;
-
       this.playerGfx = dibujarJugador(this, W / 2, H - 60);
       this.player = this.add.rectangle(W / 2, H - 60, 20, 30, 0x000000, 0);
       this.physics.add.existing(this.player);
@@ -708,23 +724,35 @@ function arrancarJuego() {
       this.physics.add.existing(suelo, true);
       this.physics.add.collider(this.player, suelo);
 
+      this.transitionOverlay = this.add.rectangle(W / 2, H / 2, W, H, 0xffffff, 0)
+        .setScrollFactor(0)
+        .setDepth(900);
+
+      this.transitionText = this.add.text(W / 2, H / 2 - 10, '', {
+        fontFamily: 'Orbitron',
+        fontSize: '26px',
+        color: '#ffffff',
+        stroke: '#000000',
+        strokeThickness: 4,
+        align: 'center'
+      })
+        .setOrigin(0.5)
+        .setScrollFactor(0)
+        .setDepth(901)
+        .setAlpha(0);
+
       this.fuel = 100;
       this.maxFuel = 100;
       this.metrosJuego = 0;
       this.metrosReales = 0;
       this.vivo = true;
       this.nivelActual = 0;
-      this._ultimaCapaMostrada = { 0: true };
       this.alturaBase = this.player.y;
       this.ultimaGenY = H - 16;
       this.vida = 3;
       this.iFrames = 0;
       this.shootCD = 0;
-      this.lastHeartBand = 0;
-
-      this.boostActivo = false;
-      this.boostHasta = 0;
-      this.nextBoostAt = Phaser.Math.Between(10000, 18000);
+      this.lastLayerFlash = 0;
 
       this.plats = [];
       this.platGfx = [];
@@ -734,8 +762,7 @@ function arrancarJuego() {
       this.pickGfx = [];
       this.heartItems = [];
       this.heartGfx = [];
-      this.boostItems = [];
-      this.boostGfx = [];
+      this.heartSpawned = {};
       this.balas = [];
       this.balaGfx = [];
 
@@ -750,6 +777,45 @@ function arrancarJuego() {
       this.cameras.main.startFollow(this.player, true, 1, 0.09);
     }
 
+    playLayerTransition(capaIndex) {
+      const capa = CAPAS[capaIndex];
+      const color = Phaser.Display.Color.IntegerToColor(capa.glow);
+
+      this.transitionOverlay.fillColor = capa.bg;
+      this.transitionOverlay.alpha = 0;
+      this.transitionText.setText(capa.nombre);
+      this.transitionText.alpha = 0;
+      this.transitionText.setScale(0.86);
+
+      this.tweens.add({
+        targets: this.transitionOverlay,
+        alpha: 0.22,
+        duration: 220,
+        yoyo: true,
+        ease: 'Sine.easeInOut'
+      });
+
+      this.tweens.add({
+        targets: this.transitionText,
+        alpha: 1,
+        scale: 1,
+        duration: 260,
+        ease: 'Back.Out',
+        yoyo: false
+      });
+
+      this.tweens.add({
+        targets: this.transitionText,
+        alpha: 0,
+        delay: 650,
+        duration: 340,
+        ease: 'Sine.easeOut'
+      });
+
+      this.cameras.main.flash(220, color.red, color.green, color.blue, false);
+      sfxLayerShift();
+    }
+
     drawWalls() {
       const topY = this.cameras.main.scrollY - 200;
       this.wallGfx.clear();
@@ -761,38 +827,25 @@ function arrancarJuego() {
       this.wallGfx.fillRect(W - WALL, topY, 2, 1200);
     }
 
-    drawHitOverlay() {
-      this.hitOverlay.clear();
-      if (this.hitFlashAlpha <= 0) return;
-
-      this.hitOverlay.fillStyle(0xff2244, this.hitFlashAlpha);
-      this.hitOverlay.fillRect(0, 0, W, H);
-
-      this.hitOverlay.lineStyle(6, 0xffffff, this.hitFlashAlpha * 0.45);
-      this.hitOverlay.strokeRect(3, 3, W - 6, H - 6);
-
-      this.hitFlashAlpha = Math.max(0, this.hitFlashAlpha - 0.024);
-    }
-
     metrosDesdeY(y) {
       const metrosJuego = Math.max(0, Math.floor((this.alturaBase - y) / 8));
       return metrosJuego * ESCALA_METROS;
     }
 
     generarChunk(desdeY, hastaY) {
-      for (let y = desdeY - 100; y > hastaY; y -= Phaser.Math.Between(90, 145)) {
+      for (let y = desdeY - 100; y > hastaY; y -= Phaser.Math.Between(96, 150)) {
         const metrosFila = this.metrosDesdeY(y);
         const capaIndex = getCapa(metrosFila);
         const capa = CAPAS[capaIndex];
         const enEspacio = capa.move === 'asteroid';
 
         if (!enEspacio) {
-          const anchoMin = Math.max(55, 110 - capaIndex * 8);
-          const anchoMax = Math.max(95, 150 - capaIndex * 10);
+          const anchoMin = Math.max(58, 122 - capaIndex * 10);
+          const anchoMax = Math.max(98, 160 - capaIndex * 12);
           const pw = Phaser.Math.Between(anchoMin, anchoMax);
           const px = Phaser.Math.Between(pw / 2 + WALL + 8, W - pw / 2 - WALL - 8);
-          const rot = (capaIndex >= 2 && Math.random() < 0.28)
-            ? Phaser.Math.FloatBetween(-0.16, 0.16)
+          const rot = (capaIndex >= 2 && Math.random() < 0.25)
+            ? Phaser.Math.FloatBetween(-0.12, 0.12)
             : 0;
 
           const pg = dibujarPlataforma(this, px, y, pw, capa.platColor, capa.glow, rot);
@@ -802,7 +855,7 @@ function arrancarJuego() {
           this.plats.push(plat);
           this.platGfx.push(pg);
 
-          if (Phaser.Math.Between(0, 5) === 0) {
+          if (Phaser.Math.Between(0, 6) === 0) {
             const fx = Phaser.Math.Between(WALL + 20, W - WALL - 20);
             const fg = dibujarPickup(this, fx, y - 22);
             const fu = this.add.rectangle(fx, y - 22, 14, 14, 0x000000, 0);
@@ -820,41 +873,72 @@ function arrancarJuego() {
           }
         }
 
-        const enemyDensity = enEspacio ? 0 : (capaIndex >= 3 ? 2 : 1);
+        if (!enEspacio && capaIndex < CAPAS.length - 1) {
+          const cercaDelFinalDeCapa = metrosFila >= (capa.hasta - 7000);
+
+          if (cercaDelFinalDeCapa && !this.heartSpawned[capaIndex]) {
+            const hx = Phaser.Math.Between(WALL + 40, W - WALL - 40);
+            const hy = y - 50;
+
+            const hg = dibujarCorazon(this, hx, hy);
+            const heart = this.add.rectangle(hx, hy, 22, 20, 0x000000, 0);
+            this.physics.add.existing(heart);
+            heart.body.setAllowGravity(false);
+            heart.body.setVelocityX(Phaser.Math.Between(90, 140) * (Math.random() > 0.5 ? 1 : -1));
+            heart.moveSpeed = Math.abs(heart.body.velocity.x);
+
+            this.heartItems.push(heart);
+            this.heartGfx.push(hg);
+            this.heartSpawned[capaIndex] = true;
+
+            this.tweens.add({
+              targets: hg,
+              y: '+=8',
+              duration: 700,
+              yoyo: true,
+              repeat: -1,
+              ease: 'Sine.easeInOut'
+            });
+          }
+        }
+
+        const enemyDensity = enEspacio ? 0 : capa.enemyDensity;
 
         for (let n = 0; n < enemyDensity; n++) {
           if (enEspacio) break;
 
-          const ex = Phaser.Math.Between(WALL + 24, W - WALL - 24);
-          const ey = y - 28 - (n * 18);
+          if (Math.random() < (n === 1 ? 0.65 : 1)) {
+            const ex = Phaser.Math.Between(WALL + 24, W - WALL - 24);
+            const ey = y - 28 - (n * 20);
 
-          const eg = dibujarEnemigo(this, ex, ey, capa);
-          const en = this.add.rectangle(ex, ey, capa.enemySize, capa.enemySize, 0x000000, 0);
-          this.physics.add.existing(en);
-          en.body.setAllowGravity(false);
-          en.moveType = capa.move;
-          en.enemySpeed = capa.speed + (n * 8);
-          en.baseX = ex;
-          en.baseY = ey;
-          en.phase = Math.random() * Math.PI * 2;
-          en.radius = Phaser.Math.Between(20, 35);
-          en.dashCD = Phaser.Math.Between(30, 70);
+            const eg = dibujarEnemigo(this, ex, ey, capa);
+            const en = this.add.rectangle(ex, ey, capa.enemySize, capa.enemySize, 0x000000, 0);
+            this.physics.add.existing(en);
+            en.body.setAllowGravity(false);
+            en.moveType = capa.move;
+            en.enemySpeed = capa.speed + (n * 10);
+            en.baseX = ex;
+            en.baseY = ey;
+            en.phase = Math.random() * Math.PI * 2;
+            en.radius = Phaser.Math.Between(20, 35);
+            en.dashCD = Phaser.Math.Between(30, 70);
 
-          if (en.moveType === 'horizontal') {
-            en.body.setVelocityX(en.enemySpeed * (Math.random() > 0.5 ? 1 : -1));
-          } else if (en.moveType === 'vertical') {
-            en.body.setVelocityY(en.enemySpeed * (Math.random() > 0.5 ? 1 : -1));
-          } else if (en.moveType === 'sine') {
-            en.body.setVelocity(0, 0);
-          } else if (en.moveType === 'dash') {
-            en.body.setVelocityX(en.enemySpeed * (Math.random() > 0.5 ? 1 : -1));
-          } else if (en.moveType === 'circle') {
-            en.body.setVelocity(0, 0);
-            en.radius = Phaser.Math.Between(24, 42);
+            if (en.moveType === 'horizontal') {
+              en.body.setVelocityX(en.enemySpeed * (Math.random() > 0.5 ? 1 : -1));
+            } else if (en.moveType === 'vertical') {
+              en.body.setVelocityY(en.enemySpeed * (Math.random() > 0.5 ? 1 : -1));
+            } else if (en.moveType === 'sine') {
+              en.body.setVelocity(0, 0);
+            } else if (en.moveType === 'dash') {
+              en.body.setVelocityX(en.enemySpeed * (Math.random() > 0.5 ? 1 : -1));
+            } else if (en.moveType === 'circle') {
+              en.body.setVelocity(0, 0);
+              en.radius = Phaser.Math.Between(24, 42);
+            }
+
+            this.enems.push(en);
+            this.enemGfx.push(eg);
           }
-
-          this.enems.push(en);
-          this.enemGfx.push(eg);
         }
       }
 
@@ -888,79 +972,6 @@ function arrancarJuego() {
       }
 
       this.ultimaGenY = hastaY;
-    }
-
-    spawnHeart() {
-      for (let i = this.heartItems.length - 1; i >= 0; i--) {
-        const h = this.heartItems[i];
-        const hg = this.heartGfx[i];
-        if (h && h.active) h.destroy();
-        if (hg) hg.destroy();
-        this.heartItems.splice(i, 1);
-        this.heartGfx.splice(i, 1);
-      }
-
-      const hx = Phaser.Math.Between(WALL + 60, W - WALL - 60);
-      const hy = this.player.y - Phaser.Math.Between(140, 190);
-
-      const hg = dibujarCorazon(this, hx, hy);
-      const heart = this.add.rectangle(hx, hy, 54, 54, 0x000000, 0);
-      this.physics.add.existing(heart);
-      heart.body.setAllowGravity(false);
-
-      const dirX = Math.random() > 0.5 ? 1 : -1;
-      const dirY = Math.random() > 0.5 ? 1 : -1;
-      const velX = Phaser.Math.Between(95, 120) * dirX;
-      const velY = Phaser.Math.Between(75, 95) * dirY;
-
-      heart.body.setVelocity(velX, velY);
-      heart.moveVX = velX;
-      heart.moveVY = velY;
-
-      this.heartItems.push(heart);
-      this.heartGfx.push(hg);
-
-      this.tweens.add({
-        targets: hg,
-        scaleX: 1.08,
-        scaleY: 1.08,
-        alpha: 0.88,
-        duration: 420,
-        yoyo: true,
-        repeat: -1,
-        ease: 'Sine.easeInOut'
-      });
-    }
-
-    spawnBoost() {
-      if (this.boostItems.length > 0) return;
-
-      const x = Phaser.Math.Between(WALL + 60, W - WALL - 60);
-      const y = this.player.y - Phaser.Math.Between(170, 250);
-
-      const g = dibujarBoost(this, x, y);
-      const b = this.add.rectangle(x, y, 32, 32, 0x000000, 0);
-      this.physics.add.existing(b);
-      b.body.setAllowGravity(false);
-
-      b.baseX = x;
-      b.baseY = y;
-      b.phase = Math.random() * Math.PI * 2;
-      b.radius = Phaser.Math.Between(18, 28);
-
-      this.boostItems.push(b);
-      this.boostGfx.push(g);
-
-      this.tweens.add({
-        targets: g,
-        scaleX: 1.16,
-        scaleY: 1.16,
-        alpha: 0.92,
-        duration: 380,
-        yoyo: true,
-        repeat: -1,
-        ease: 'Sine.easeInOut'
-      });
     }
 
     hit(a, b, mg) {
@@ -1039,21 +1050,16 @@ function arrancarJuego() {
 
     updateHUD() {
       elMetros.textContent = '⬆ ' + this.metrosReales.toLocaleString('es-AR') + ' m';
-      elFuel.textContent = this.boostActivo
-        ? '⚡ OVERDRIVE'
-        : '⚡ Fuel: ' + Math.floor(this.fuel) + '%';
+      elFuel.textContent = '⚡ Fuel: ' + Math.floor(this.fuel) + '%';
       elVida.textContent = '❤ Vida: ' + this.vida;
       elNivel.textContent = CAPAS[this.nivelActual].nombre;
-      elBar.style.width = this.boostActivo
-        ? '100px'
-        : (this.fuel / this.maxFuel) * 100 + 'px';
+      elBar.style.width = Math.max(0, Math.min(100, (this.fuel / this.maxFuel) * 100)) + 'px';
     }
 
     update() {
       if (!this.vivo) return;
 
       this.drawWalls();
-      this.drawHitOverlay();
 
       const pb = this.player.body;
       const izq = this.cursors.left.isDown || this.keyA.isDown;
@@ -1063,29 +1069,13 @@ function arrancarJuego() {
       this.metrosJuego = Math.max(0, Math.floor((this.alturaBase - this.player.y) / 8));
       this.metrosReales = this.metrosJuego * ESCALA_METROS;
 
-      const currentHeartBand = Math.floor(this.metrosReales / 6000);
-      if (currentHeartBand > this.lastHeartBand) {
-        this.lastHeartBand = currentHeartBand;
-        if (currentHeartBand >= 1) {
-          this.spawnHeart();
-        }
-      }
-
-      if (this.metrosReales >= this.nextBoostAt) {
-        this.spawnBoost();
-        this.nextBoostAt += Phaser.Math.Between(10000, 18000);
-      }
-
       const nuevaCapa = getCapa(this.metrosReales);
+      const capaData = CAPAS[nuevaCapa];
+
       if (nuevaCapa !== this.nivelActual) {
         this.nivelActual = nuevaCapa;
         this.cameras.main.setBackgroundColor(CAPAS[this.nivelActual].bg);
-
-        if (!this._ultimaCapaMostrada[this.nivelActual]) {
-          this._ultimaCapaMostrada[this.nivelActual] = true;
-          mostrarTransicionCapa(CAPAS[this.nivelActual].nombre);
-          this.cameras.main.flash(220, 180, 255, 255, false);
-        }
+        this.playLayerTransition(this.nivelActual);
       }
 
       pb.setVelocityX(izq ? -250 : der ? 250 : 0);
@@ -1098,38 +1088,11 @@ function arrancarJuego() {
 
       this.llamaGfx.clear();
 
-      if (this.boostActivo) {
-        pb.checkCollision.none = true;
-        pb.setVelocityX(0);
-        pb.setVelocityY(-980);
-
-        this.playerGfx.alpha = 0.86;
-
-        this.llamaGfx.fillStyle(0xffff66, 0.95);
-        this.llamaGfx.fillTriangle(
-          this.player.x - 8, this.player.y + 16,
-          this.player.x + 8, this.player.y + 16,
-          this.player.x, this.player.y + 42
-        );
-        this.llamaGfx.fillStyle(0xff8800, 0.85);
-        this.llamaGfx.fillTriangle(
-          this.player.x - 5, this.player.y + 16,
-          this.player.x + 5, this.player.y + 16,
-          this.player.x, this.player.y + 34
-        );
-
-        if (this.metrosReales >= this.boostHasta) {
-          this.boostActivo = false;
-          pb.checkCollision.none = false;
-          this.playerGfx.alpha = 1;
-        }
-
-      } else if (arr && this.fuel > 0) {
-        pb.checkCollision.none = false;
+      if (arr && this.fuel > 0) {
         startJetpackSound();
         updateJetpackSound();
-        pb.setVelocityY(-400);
-        this.fuel = Math.max(0, this.fuel - 0.6);
+        pb.setVelocityY(-capaData.jetPower);
+        this.fuel = Math.max(0, this.fuel - capaData.fuelUse);
 
         this.llamaGfx.fillStyle(0xff6600, 0.9);
         this.llamaGfx.fillTriangle(
@@ -1144,9 +1107,8 @@ function arrancarJuego() {
           this.player.x, this.player.y + 16 + Phaser.Math.Between(6, 14)
         );
       } else {
-        pb.checkCollision.none = false;
         stopJetpackSound();
-        if (!arr) this.fuel = Math.min(this.maxFuel, this.fuel + 0.14);
+        if (!arr) this.fuel = Math.min(this.maxFuel, this.fuel + capaData.fuelRegen);
       }
 
       for (let i = 0; i < this.pickups.length; i++) {
@@ -1154,47 +1116,6 @@ function arrancarJuego() {
         const pg = this.pickGfx[i];
         if (!p || !p.active || !pg) continue;
         pg.x = p.x;
-      }
-
-      for (let i = this.boostItems.length - 1; i >= 0; i--) {
-        const b = this.boostItems[i];
-        const bg = this.boostGfx[i];
-
-        if (!b || !b.active) {
-          if (bg) bg.destroy();
-          this.boostItems.splice(i, 1);
-          this.boostGfx.splice(i, 1);
-          continue;
-        }
-
-        b.phase += 0.05;
-        b.x = b.baseX + Math.cos(b.phase) * b.radius;
-        b.y = b.baseY + Math.sin(b.phase * 1.3) * (b.radius * 0.55);
-
-        if (bg) {
-          bg.x = b.x;
-          bg.y = b.y;
-          bg.rotation += 0.035;
-        }
-
-        if (this.hit(this.player, b, 2)) {
-          b.destroy();
-          if (bg) bg.destroy();
-          this.boostItems.splice(i, 1);
-          this.boostGfx.splice(i, 1);
-
-          this.boostActivo = true;
-          this.boostHasta = this.metrosReales + 4000;
-          this.iFrames = 0;
-          sfxBoost();
-          this.cameras.main.flash(180, 255, 255, 120, false);
-          this.cameras.main.shake(120, 0.01);
-        } else if (b.y > this.cameras.main.scrollY + H + 120) {
-          b.destroy();
-          if (bg) bg.destroy();
-          this.boostItems.splice(i, 1);
-          this.boostGfx.splice(i, 1);
-        }
       }
 
       for (let i = this.heartItems.length - 1; i >= 0; i--) {
@@ -1208,46 +1129,27 @@ function arrancarJuego() {
           continue;
         }
 
-        if (h.x < WALL + 20) {
-          h.body.setVelocityX(Math.abs(h.moveVX || 110));
-          h.moveVX = Math.abs(h.moveVX || 110);
-        }
-        if (h.x > W - WALL - 20) {
-          h.body.setVelocityX(-Math.abs(h.moveVX || 110));
-          h.moveVX = -Math.abs(h.moveVX || 110);
-        }
-
-        const topLimit = this.cameras.main.scrollY + 30;
-        const bottomLimit = this.cameras.main.scrollY + H - 90;
-
-        if (h.y < topLimit) {
-          h.body.setVelocityY(Math.abs(h.moveVY || 90));
-          h.moveVY = Math.abs(h.moveVY || 90);
-        }
-        if (h.y > bottomLimit) {
-          h.body.setVelocityY(-Math.abs(h.moveVY || 90));
-          h.moveVY = -Math.abs(h.moveVY || 90);
-        }
-
         if (hg) {
           hg.x = h.x;
-          hg.y = h.y;
-          hg.rotation += 0.025;
+        }
+
+        if (h.x < WALL + 14) {
+          h.body.setVelocityX(Math.abs(h.moveSpeed || 100));
+        }
+        if (h.x > W - WALL - 14) {
+          h.body.setVelocityX(-Math.abs(h.moveSpeed || 100));
         }
 
         if (this.hit(this.player, h, 2)) {
           const fx = this.add.graphics();
-          fx.fillStyle(0xff6699, 0.55);
-          fx.fillCircle(h.x, h.y, 34);
-          fx.fillStyle(0xffffff, 0.18);
+          fx.fillStyle(0xff6699, 0.6);
           fx.fillCircle(h.x, h.y, 18);
-
           this.tweens.add({
             targets: fx,
             alpha: 0,
-            scaleX: 2.6,
-            scaleY: 2.6,
-            duration: 320,
+            scaleX: 2,
+            scaleY: 2,
+            duration: 260,
             onComplete: () => fx.destroy()
           });
 
@@ -1262,7 +1164,7 @@ function arrancarJuego() {
       }
 
       this.shootCD--;
-      if (!this.boostActivo && this.keyX.isDown && this.shootCD <= 0) {
+      if (this.keyX.isDown && this.shootCD <= 0) {
         sfxShoot();
         this.shootCD = 16;
 
@@ -1298,7 +1200,8 @@ function arrancarJuego() {
 
       for (let i = this.balas.length - 1; i >= 0; i--) {
         const b = this.balas[i];
-        if (!b.active) {
+        if (!b || !b.active) {
+          if (this.balaGfx[i]) this.balaGfx[i].destroy();
           this.balas.splice(i, 1);
           this.balaGfx.splice(i, 1);
           continue;
@@ -1324,7 +1227,7 @@ function arrancarJuego() {
             });
 
             b.destroy();
-            this.balaGfx[i].destroy();
+            if (this.balaGfx[i]) this.balaGfx[i].destroy();
             this.balas.splice(i, 1);
             this.balaGfx.splice(i, 1);
             balaDestruida = true;
@@ -1336,7 +1239,8 @@ function arrancarJuego() {
 
         for (let j = this.enems.length - 1; j >= 0; j--) {
           const e = this.enems[j];
-          if (!e.active) {
+          if (!e || !e.active) {
+            if (this.enemGfx[j]) this.enemGfx[j].destroy();
             this.enems.splice(j, 1);
             this.enemGfx.splice(j, 1);
             continue;
@@ -1358,12 +1262,12 @@ function arrancarJuego() {
             });
 
             b.destroy();
-            this.balaGfx[i].destroy();
+            if (this.balaGfx[i]) this.balaGfx[i].destroy();
             this.balas.splice(i, 1);
             this.balaGfx.splice(i, 1);
 
             e.destroy();
-            this.enemGfx[j].destroy();
+            if (this.enemGfx[j]) this.enemGfx[j].destroy();
             this.enems.splice(j, 1);
             this.enemGfx.splice(j, 1);
             break;
@@ -1392,7 +1296,10 @@ function arrancarJuego() {
 
       for (let i = this.pickups.length - 1; i >= 0; i--) {
         const p = this.pickups[i];
-        if (!p.active) {
+        const pg = this.pickGfx[i];
+
+        if (!p || !p.active) {
+          if (pg) pg.destroy();
           this.pickups.splice(i, 1);
           this.pickGfx.splice(i, 1);
           continue;
@@ -1412,50 +1319,28 @@ function arrancarJuego() {
           });
 
           p.destroy();
-          this.pickGfx[i].destroy();
+          if (pg) pg.destroy();
           this.pickups.splice(i, 1);
           this.pickGfx.splice(i, 1);
-          this.fuel = Math.min(this.maxFuel, this.fuel + 40);
+          this.fuel = Math.min(this.maxFuel, this.fuel + capaData.fuelPickup);
           sfxFuel();
         }
       }
 
       this.updateEnemies();
 
-      if (this.boostActivo) {
-        // durante boost no recibe daño
-      } else if (this.iFrames > 0) {
+      if (this.iFrames > 0) {
         this.iFrames--;
         this.playerGfx.alpha = this.iFrames % 8 < 4 ? 0.3 : 1;
       } else {
         this.playerGfx.alpha = 1;
         for (const e of this.enems) {
-          if (!e.active) continue;
+          if (!e || !e.active) continue;
           if (this.hit(this.player, e, 4)) {
             this.vida--;
-            this.iFrames = 110;
-            this.hitFlashAlpha = 0.38;
-            sfxHit();
-            this.cameras.main.shake(260, 0.02);
-            this.cameras.main.flash(120, 255, 70, 70, false);
-
-            const golpe = this.add.graphics();
-            golpe.fillStyle(0xff3344, 0.70);
-            golpe.fillCircle(this.player.x, this.player.y, 24);
-            golpe.fillStyle(0xffffff, 0.18);
-            golpe.fillCircle(this.player.x, this.player.y, 12);
-            this.tweens.add({
-              targets: golpe,
-              alpha: 0,
-              scaleX: 2.1,
-              scaleY: 2.1,
-              duration: 220,
-              onComplete: () => golpe.destroy()
-            });
-
-            const dir = this.player.x < e.x ? -1 : 1;
-            pb.setVelocityX(dir * 180);
-            pb.setVelocityY(220);
+            this.iFrames = 100;
+            this.cameras.main.shake(200, 0.013);
+            this.cameras.main.flash(120, 255, 60, 60, true);
 
             if (this.vida <= 0) {
               this.vivo = false;
