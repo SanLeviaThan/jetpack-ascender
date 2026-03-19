@@ -150,6 +150,23 @@ function sfxLayerShift() {
   beep(920, 0.12, 'sine', 0.04, t + 0.12);
 }
 
+function sfxChest() {
+  if (!audioFX.ctx) return;
+  const t = audioFX.ctx.currentTime;
+  beep(520, 0.08, 'square', 0.03, t);
+  beep(780, 0.09, 'triangle', 0.04, t + 0.05);
+  beep(1040, 0.15, 'sine', 0.05, t + 0.12);
+}
+
+function sfxPowerup() {
+  if (!audioFX.ctx) return;
+  const t = audioFX.ctx.currentTime;
+  beep(660, 0.07, 'triangle', 0.03, t);
+  beep(880, 0.07, 'triangle', 0.035, t + 0.05);
+  beep(1175, 0.10, 'triangle', 0.04, t + 0.10);
+  beep(1568, 0.18, 'sine', 0.045, t + 0.16);
+}
+
 function startJetpackSound() {
   if (!audioFX.ctx) return;
   if (audioFX.jetOsc) return;
@@ -580,6 +597,8 @@ function arrancarJuego() {
   ];
 
   const ESCALA_METROS = 6;
+  const POWERUP_INVUL_MS = 3000;
+  const POWERUP_DSHOT_MS = 5000;
 
   const elMetros = document.getElementById('hud-metros');
   const elFuel = document.getElementById('hud-fuel');
@@ -689,6 +708,33 @@ function arrancarJuego() {
     return g;
   }
 
+  function dibujarCofre(scene, x, y) {
+    const g = scene.add.graphics();
+
+    g.fillStyle(0xffdd55, 0.18);
+    g.fillCircle(0, 0, 20);
+
+    g.fillStyle(0xb06b12, 1);
+    g.fillRoundedRect(-14, -8, 28, 20, 4);
+
+    g.fillStyle(0xe3a42a, 1);
+    g.fillRoundedRect(-14, -12, 28, 12, 6);
+
+    g.fillStyle(0x6b3a00, 1);
+    g.fillRect(-3, -12, 6, 24);
+
+    g.fillStyle(0xfff2a8, 1);
+    g.fillRect(-2, -2, 4, 6);
+
+    g.lineStyle(2, 0xffe680, 0.9);
+    g.strokeRoundedRect(-14, -8, 28, 20, 4);
+    g.strokeRoundedRect(-14, -12, 28, 12, 6);
+
+    g.x = x;
+    g.y = y;
+    return g;
+  }
+
   class GameScene extends Phaser.Scene {
     constructor() { super('GameScene'); }
 
@@ -741,6 +787,19 @@ function arrancarJuego() {
         .setDepth(901)
         .setAlpha(0);
 
+      this.powerText = this.add.text(W / 2, 120, '', {
+        fontFamily: 'Orbitron',
+        fontSize: '18px',
+        color: '#ffffff',
+        stroke: '#000000',
+        strokeThickness: 4,
+        align: 'center'
+      })
+        .setOrigin(0.5)
+        .setScrollFactor(0)
+        .setDepth(902)
+        .setAlpha(0);
+
       this.fuel = 100;
       this.maxFuel = 100;
       this.metrosJuego = 0;
@@ -752,7 +811,9 @@ function arrancarJuego() {
       this.vida = 3;
       this.iFrames = 0;
       this.shootCD = 0;
-      this.lastLayerFlash = 0;
+
+      this.invulnerableUntil = 0;
+      this.doubleShotUntil = 0;
 
       this.plats = [];
       this.platGfx = [];
@@ -762,7 +823,10 @@ function arrancarJuego() {
       this.pickGfx = [];
       this.heartItems = [];
       this.heartGfx = [];
+      this.chests = [];
+      this.chestGfx = [];
       this.heartSpawned = {};
+      this.lastChestBand = -1;
       this.balas = [];
       this.balaGfx = [];
 
@@ -775,6 +839,24 @@ function arrancarJuego() {
       this.keyX = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
 
       this.cameras.main.startFollow(this.player, true, 1, 0.09);
+    }
+
+    showPowerText(msg, tint) {
+      this.powerText.setText(msg);
+      this.powerText.setColor(tint || '#ffffff');
+      this.powerText.setAlpha(1);
+      this.powerText.setScale(0.82);
+      this.powerText.y = 120;
+
+      this.tweens.killTweensOf(this.powerText);
+      this.tweens.add({
+        targets: this.powerText,
+        alpha: 0,
+        y: 82,
+        scale: 1.05,
+        duration: 1100,
+        ease: 'Sine.easeOut'
+      });
     }
 
     playLayerTransition(capaIndex) {
@@ -814,6 +896,57 @@ function arrancarJuego() {
 
       this.cameras.main.flash(220, color.red, color.green, color.blue, false);
       sfxLayerShift();
+    }
+
+    spawnChest(y) {
+      const x = Phaser.Math.Between(WALL + 46, W - WALL - 46);
+      const chest = this.add.rectangle(x, y, 28, 24, 0x000000, 0);
+      this.physics.add.existing(chest);
+      chest.body.setAllowGravity(false);
+      chest.body.setVelocityX(Phaser.Math.Between(75, 110) * (Math.random() > 0.5 ? 1 : -1));
+      chest.moveSpeed = Math.abs(chest.body.velocity.x);
+
+      const cg = dibujarCofre(this, x, y);
+      this.chests.push(chest);
+      this.chestGfx.push(cg);
+
+      this.tweens.add({
+        targets: cg,
+        y: '+=8',
+        duration: 900,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      });
+    }
+
+    aplicarPowerup() {
+      const opciones = [];
+
+      if (this.fuel < 85) opciones.push('fuel');
+      if (this.vida < 4) opciones.push('vida');
+      opciones.push('invul');
+      opciones.push('dshot');
+
+      const premio = Phaser.Utils.Array.GetRandom(opciones);
+      const ahora = this.time.now;
+
+      if (premio === 'fuel') {
+        this.fuel = Math.min(this.maxFuel, this.fuel + 55);
+        this.showPowerText('POWER UP: FUEL MAX', '#66ffcc');
+      } else if (premio === 'vida') {
+        this.vida = Math.min(4, this.vida + 1);
+        this.showPowerText('POWER UP: VIDA +1', '#ff7799');
+      } else if (premio === 'invul') {
+        this.invulnerableUntil = Math.max(this.invulnerableUntil, ahora + POWERUP_INVUL_MS);
+        this.iFrames = Math.max(this.iFrames, Math.ceil(POWERUP_INVUL_MS / 16));
+        this.showPowerText('POWER UP: INVULNERABLE', '#ffee66');
+      } else if (premio === 'dshot') {
+        this.doubleShotUntil = Math.max(this.doubleShotUntil, ahora + POWERUP_DSHOT_MS);
+        this.showPowerText('POWER UP: DISPARO DOBLE', '#66aaff');
+      }
+
+      sfxPowerup();
     }
 
     drawWalls() {
@@ -945,6 +1078,13 @@ function arrancarJuego() {
       const metrosCentroChunk = this.metrosDesdeY((desdeY + hastaY) / 2);
       const capaCentro = CAPAS[getCapa(metrosCentroChunk)];
 
+      const chestBand = Math.floor(metrosCentroChunk / 18000);
+      if (chestBand > this.lastChestBand && chestBand >= 1 && capaCentro.move !== 'asteroid') {
+        this.lastChestBand = chestBand;
+        const chestY = Phaser.Math.Between(hastaY + 100, desdeY - 160);
+        this.spawnChest(chestY);
+      }
+
       if (capaCentro.move === 'asteroid') {
         for (let i = 0; i < 5; i++) {
           const ex = Phaser.Math.Between(WALL + 20, W - WALL - 20);
@@ -990,6 +1130,29 @@ function arrancarJuego() {
         this.player.x = W - WALL - 10;
         if (this.player.body.velocity.x > 0) this.player.body.setVelocityX(0);
       }
+    }
+
+    createBullet(x, y, vx, vy) {
+      const br = this.add.rectangle(x, y, 4, 12, 0x000000, 0);
+      this.physics.add.existing(br);
+      br.body.setVelocity(vx, vy);
+      br.body.setAllowGravity(false);
+
+      const bgfx = this.add.graphics();
+      bgfx.fillStyle(0xffff00, 1);
+      bgfx.fillRect(-2, -6, 4, 12);
+      bgfx.fillStyle(0xffffff, 0.6);
+      bgfx.fillRect(-1, -6, 2, 12);
+
+      this.balas.push(br);
+      this.balaGfx.push(bgfx);
+
+      this.time.delayedCall(1500, () => {
+        if (br && br.active) {
+          br.destroy();
+          bgfx.destroy();
+        }
+      });
     }
 
     updateEnemies() {
@@ -1049,8 +1212,14 @@ function arrancarJuego() {
     }
 
     updateHUD() {
+      const ahora = this.time.now;
+      const extras = [];
+
+      if (this.invulnerableUntil > ahora) extras.push('🛡');
+      if (this.doubleShotUntil > ahora) extras.push('✦');
+
       elMetros.textContent = '⬆ ' + this.metrosReales.toLocaleString('es-AR') + ' m';
-      elFuel.textContent = '⚡ Fuel: ' + Math.floor(this.fuel) + '%';
+      elFuel.textContent = '⚡ Fuel: ' + Math.floor(this.fuel) + '%' + (extras.length ? '  ' + extras.join(' ') : '');
       elVida.textContent = '❤ Vida: ' + this.vida;
       elNivel.textContent = CAPAS[this.nivelActual].nombre;
       elBar.style.width = Math.max(0, Math.min(100, (this.fuel / this.maxFuel) * 100)) + 'px';
@@ -1061,6 +1230,7 @@ function arrancarJuego() {
 
       this.drawWalls();
 
+      const ahora = this.time.now;
       const pb = this.player.body;
       const izq = this.cursors.left.isDown || this.keyA.isDown;
       const der = this.cursors.right.isDown || this.keyD.isDown;
@@ -1085,6 +1255,10 @@ function arrancarJuego() {
       this.playerGfx.x = this.player.x;
       this.playerGfx.y = this.player.y;
       this.playerGfx.scaleX = izq ? -1 : 1;
+
+      if (this.invulnerableUntil > ahora) {
+        this.playerGfx.alpha = (Math.floor(ahora / 80) % 2 === 0) ? 0.5 : 1;
+      }
 
       this.llamaGfx.clear();
 
@@ -1116,6 +1290,54 @@ function arrancarJuego() {
         const pg = this.pickGfx[i];
         if (!p || !p.active || !pg) continue;
         pg.x = p.x;
+      }
+
+      for (let i = 0; i < this.chests.length; i++) {
+        const c = this.chests[i];
+        const cg = this.chestGfx[i];
+        if (!c || !c.active || !cg) continue;
+        cg.x = c.x;
+      }
+
+      for (let i = this.chests.length - 1; i >= 0; i--) {
+        const c = this.chests[i];
+        const cg = this.chestGfx[i];
+
+        if (!c || !c.active) {
+          if (cg) cg.destroy();
+          this.chests.splice(i, 1);
+          this.chestGfx.splice(i, 1);
+          continue;
+        }
+
+        if (c.x < WALL + 18) {
+          c.body.setVelocityX(Math.abs(c.moveSpeed || 90));
+        }
+        if (c.x > W - WALL - 18) {
+          c.body.setVelocityX(-Math.abs(c.moveSpeed || 90));
+        }
+
+        if (this.hit(this.player, c, 2)) {
+          const fx = this.add.graphics();
+          fx.fillStyle(0xffdd66, 0.7);
+          fx.fillCircle(c.x, c.y, 22);
+          this.tweens.add({
+            targets: fx,
+            alpha: 0,
+            scaleX: 2.2,
+            scaleY: 2.2,
+            duration: 320,
+            onComplete: () => fx.destroy()
+          });
+
+          sfxChest();
+          this.aplicarPowerup();
+
+          c.destroy();
+          if (cg) cg.destroy();
+          this.chests.splice(i, 1);
+          this.chestGfx.splice(i, 1);
+        }
       }
 
       for (let i = this.heartItems.length - 1; i >= 0; i--) {
@@ -1166,28 +1388,14 @@ function arrancarJuego() {
       this.shootCD--;
       if (this.keyX.isDown && this.shootCD <= 0) {
         sfxShoot();
-        this.shootCD = 16;
+        this.shootCD = (this.doubleShotUntil > ahora) ? 13 : 16;
 
-        const br = this.add.rectangle(this.player.x, this.player.y - 28, 4, 12, 0x000000, 0);
-        this.physics.add.existing(br);
-        br.body.setVelocityY(-680);
-        br.body.setAllowGravity(false);
+        this.createBullet(this.player.x, this.player.y - 28, 0, -680);
 
-        const bgfx = this.add.graphics();
-        bgfx.fillStyle(0xffff00, 1);
-        bgfx.fillRect(-2, -6, 4, 12);
-        bgfx.fillStyle(0xffffff, 0.6);
-        bgfx.fillRect(-1, -6, 2, 12);
-
-        this.balas.push(br);
-        this.balaGfx.push(bgfx);
-
-        this.time.delayedCall(1500, () => {
-          if (br && br.active) {
-            br.destroy();
-            bgfx.destroy();
-          }
-        });
+        if (this.doubleShotUntil > ahora) {
+          this.createBullet(this.player.x - 10, this.player.y - 24, -90, -650);
+          this.createBullet(this.player.x + 10, this.player.y - 24, 90, -650);
+        }
       }
 
       for (let i = 0; i < this.balas.length; i++) {
@@ -1294,6 +1502,25 @@ function arrancarJuego() {
         }
       }
 
+      for (let i = this.chests.length - 1; i >= 0; i--) {
+        const c = this.chests[i];
+        const cg = this.chestGfx[i];
+
+        if (!c || !c.active) {
+          if (cg) cg.destroy();
+          this.chests.splice(i, 1);
+          this.chestGfx.splice(i, 1);
+          continue;
+        }
+
+        if (c.y > this.cameras.main.scrollY + H + 140) {
+          c.destroy();
+          if (cg) cg.destroy();
+          this.chests.splice(i, 1);
+          this.chestGfx.splice(i, 1);
+        }
+      }
+
       for (let i = this.pickups.length - 1; i >= 0; i--) {
         const p = this.pickups[i];
         const pg = this.pickGfx[i];
@@ -1329,27 +1556,29 @@ function arrancarJuego() {
 
       this.updateEnemies();
 
-      if (this.iFrames > 0) {
-        this.iFrames--;
-        this.playerGfx.alpha = this.iFrames % 8 < 4 ? 0.3 : 1;
-      } else {
-        this.playerGfx.alpha = 1;
-        for (const e of this.enems) {
-          if (!e || !e.active) continue;
-          if (this.hit(this.player, e, 4)) {
-            this.vida--;
-            this.iFrames = 100;
-            this.cameras.main.shake(200, 0.013);
-            this.cameras.main.flash(120, 255, 60, 60, true);
+      if (this.invulnerableUntil <= ahora) {
+        if (this.iFrames > 0) {
+          this.iFrames--;
+          this.playerGfx.alpha = this.iFrames % 8 < 4 ? 0.3 : 1;
+        } else {
+          this.playerGfx.alpha = 1;
+          for (const e of this.enems) {
+            if (!e || !e.active) continue;
+            if (this.hit(this.player, e, 4)) {
+              this.vida--;
+              this.iFrames = 100;
+              this.cameras.main.shake(200, 0.013);
+              this.cameras.main.flash(120, 255, 60, 60, true);
 
-            if (this.vida <= 0) {
-              this.vivo = false;
-              stopJetpackSound();
-              sfxDeath();
-              mostrarGameOver(this.metrosReales);
-              return;
+              if (this.vida <= 0) {
+                this.vivo = false;
+                stopJetpackSound();
+                sfxDeath();
+                mostrarGameOver(this.metrosReales);
+                return;
+              }
+              break;
             }
-            break;
           }
         }
       }
