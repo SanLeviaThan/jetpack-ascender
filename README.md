@@ -164,3 +164,6 @@ Puede incluir:
 
 Esto ayuda a reforzar la sensación de progresión vertical y tensión constante.
 
+---
+
+Modo testeo: Jetpack Ascender se encuentra actualmente en fase de pruebas. Esta versión está disponible para testear mecánicas, dificultad, rendimiento y sensaciones generales de juego. Si encontrás errores o tenés ideas para mejorarlo, toda devolución suma. Podés probarlo acá: https://sanleviathan.github.io/jetpack-ascender/
